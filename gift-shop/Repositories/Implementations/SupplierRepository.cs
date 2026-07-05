@@ -5,62 +5,65 @@ using Microsoft.EntityFrameworkCore;
 
 namespace gift_shop.Repositories.Implementations;
 
-public class SupplierRepository : Repository<Supplier>, IRepository<Supplier>
+public class SupplierRepository : ISupplierRepository
 {
-    public SupplierRepository(GiftShopDbContext context) : base(context)
+    private readonly GiftShopDbContext _context;
+
+    public SupplierRepository(GiftShopDbContext context)
     {
+        _context = context;
     }
 
-    public async Task<IEnumerable<Supplier>> GetActiveSuppliersAsync()
+    // =========================
+    // Get all suppliers
+    // =========================
+    public async Task<IEnumerable<Supplier>> GetAllAsync()
     {
-        return await _dbSet.Where(s => s.IsActive).ToListAsync();
+        return await _context.Suppliers
+            .OrderByDescending(s => s.supplier_id)
+            .ToListAsync();
     }
 
-    public async Task<Supplier?> GetByNameAsync(string name)
+    // =========================
+    // Get by id
+    // =========================
+    public async Task<Supplier?> GetByIdAsync(int id)
     {
-        return await _dbSet.FirstOrDefaultAsync(s => s.Name == name);
+        return await _context.Suppliers
+            .FirstOrDefaultAsync(s => s.supplier_id == id);
     }
 
-    public async Task<Supplier?> GetByEmailAsync(string email)
+    // =========================
+    // Create supplier
+    // =========================
+    public async Task<Supplier> CreateAsync(Supplier supplier)
     {
-        return await _dbSet.FirstOrDefaultAsync(s => s.ContactEmail == email);
+        _context.Suppliers.Add(supplier);
+        await _context.SaveChangesAsync();
+        return supplier;
     }
 
-    public async Task<IEnumerable<Supplier>> GetByCityAsync(string city)
+    // =========================
+    // Update supplier
+    // =========================
+    public async Task<bool> UpdateAsync(Supplier supplier)
     {
-        return await _dbSet.Where(s => s.City == city).ToListAsync();
+        _context.Suppliers.Update(supplier);
+        return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<IEnumerable<Supplier>> GetByCountryAsync(string country)
+    // =========================
+    // Delete supplier
+    // =========================
+    public async Task<bool> DeleteAsync(int id)
     {
-        return await _dbSet.Where(s => s.Country == country).ToListAsync();
-    }
+        var supplier = await _context.Suppliers
+            .FirstOrDefaultAsync(s => s.supplier_id == id);
 
-    public async Task<int> GetTotalActiveSuppliersAsync()
-    {
-        return await _dbSet.Where(s => s.IsActive).CountAsync();
-    }
+        if (supplier == null)
+            return false;
 
-    public async Task<bool> NameExistsAsync(string name)
-    {
-        return await _dbSet.AnyAsync(s => s.Name == name);
-    }
-
-    public async Task<bool> DeactivateSupplierAsync(int id)
-    {
-        var supplier = await GetByIdAsync(id);
-        if (supplier == null) return false;
-
-        supplier.IsActive = false;
-        supplier.UpdatedAt = DateTime.UtcNow;
-
-        await UpdateAsync(supplier);
-        await SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<int> GetProductCountBySupplierAsync(int supplierId)
-    {
-        return await _context.Products.Where(p => p.SupplierId == supplierId).CountAsync();
+        _context.Suppliers.Remove(supplier);
+        return await _context.SaveChangesAsync() > 0;
     }
 }

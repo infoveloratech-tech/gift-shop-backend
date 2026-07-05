@@ -1,19 +1,16 @@
 using gift_shop.DTOs;
+using gift_shop.Models;
 
 namespace gift_shop.Services.Interfaces;
 
 public interface IOrderService
 {
-    Task<OrderDto?> GetOrderByIdAsync(int id);
-    Task<IEnumerable<OrderDto>> GetAllOrdersAsync();
-    Task<IEnumerable<OrderDto>> GetOrdersByCustomerAsync(int customerId);
-    Task<IEnumerable<OrderDto>> GetOrdersByStatusAsync(string status);
-    Task<OrderDto> CreateOrderAsync(CreateOrderDto createOrderDto);
-    Task<OrderDto> UpdateOrderAsync(int id, UpdateOrderDto updateOrderDto);
-    Task<bool> CancelOrderAsync(int id);
+    Task<IEnumerable<Order>> GetAllOrdersAsync();
+    Task<Order?> GetOrderByIdAsync(int id);
+    Task<Order> CreateOrderAsync(Order order);
+    Task<bool> UpdateOrderAsync(Order order);
     Task<bool> DeleteOrderAsync(int id);
-    Task<OrderDto> UpdateOrderStatusAsync(int id, string status);
-    Task<IEnumerable<OrderDto>> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate);
-    Task<decimal> GetTotalRevenueAsync();
-    Task<int> GetTotalOrdersCountAsync();
+
+    Task<IEnumerable<Order>> GetOrdersByUserAsync(int userId);
+    Task<object?> GetOrderDetailsAsync(int orderId);
 }

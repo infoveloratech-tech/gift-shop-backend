@@ -1,17 +1,22 @@
-namespace gift_shop.Models;
-
-public class Supplier
+namespace gift_shop.Models
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string ContactEmail { get; set; } = string.Empty;
-    public string ContactPhone { get; set; } = string.Empty;
-    public string Address { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string State { get; set; } = string.Empty;
-    public string PostalCode { get; set; } = string.Empty;
-    public string Country { get; set; } = string.Empty;
-    public bool IsActive { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public class Supplier
+    {
+        public int supplier_id { get; set; }
+
+        public string? supplier_name { get; set; }
+        public string? email { get; set; }
+        public string? phone { get; set; }
+
+        public string? address { get; set; }
+        public string? city { get; set; }
+        public string? state { get; set; }
+        public string? postal_code { get; set; }
+        public string? country { get; set; }
+
+        public string? status { get; set; }
+
+        public DateTime? created_at { get; set; }
+        public DateTime? updated_at { get; set; }
+    }
 }

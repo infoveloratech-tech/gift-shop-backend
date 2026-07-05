@@ -1,15 +1,13 @@
 using gift_shop.DTOs;
+using gift_shop.Models;
 
 namespace gift_shop.Services.Interfaces;
 
 public interface ISupplierService
 {
-    Task<SupplierDto?> GetSupplierByIdAsync(int id);
-    Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync();
-    Task<IEnumerable<SupplierDto>> GetActiveSuppliersAsync();
-    Task<SupplierDto> CreateSupplierAsync(CreateSupplierDto createSupplierDto);
-    Task<SupplierDto> UpdateSupplierAsync(int id, UpdateSupplierDto updateSupplierDto);
+    Task<IEnumerable<Supplier>> GetAllSuppliersAsync();
+    Task<Supplier?> GetSupplierByIdAsync(int id);
+    Task<Supplier> CreateSupplierAsync(Supplier supplier);
+    Task<bool> UpdateSupplierAsync(Supplier supplier);
     Task<bool> DeleteSupplierAsync(int id);
-    Task<bool> DeactivateSupplierAsync(int id);
-    Task<IEnumerable<SupplierDto>> GetSuppliersByCityAsync(string city);
 }

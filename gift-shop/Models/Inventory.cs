@@ -2,13 +2,12 @@ namespace gift_shop.Models;
 
 public class Inventory
 {
-    public int Id { get; set; }
-    public int ProductId { get; set; }
-    public int QuantityOnHand { get; set; }
-    public int QuantityReserved { get; set; }
-    public int ReorderLevel { get; set; }
-    public string WarehouseLocation { get; set; } = string.Empty;
-    public DateTime LastCountDate { get; set; } = DateTime.UtcNow;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public int inventory_id { get; set; }
+    public int product_id { get; set; }
+    public int quantity { get; set; }
+    public int reserved_quantity { get; set; }
+    public int reorder_level { get; set; }
+    public DateTime last_stock_update { get; set; } = DateTime.UtcNow;
+    public DateTime created_at { get; set; } = DateTime.UtcNow;
+    public DateTime updated_at { get; set; } = DateTime.UtcNow;
 }

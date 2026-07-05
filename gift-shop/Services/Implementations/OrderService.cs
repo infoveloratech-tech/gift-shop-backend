@@ -9,129 +9,93 @@ namespace gift_shop.Services.Implementations;
 public class OrderService : IOrderService
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly IMapper _mapper;
 
-    public OrderService(IOrderRepository orderRepository, IMapper mapper)
+    public OrderService(IOrderRepository orderRepository)
     {
         _orderRepository = orderRepository;
-        _mapper = mapper;
     }
 
-    public async Task<OrderDto?> GetOrderByIdAsync(int id)
+    // =========================
+    // Get all orders
+    // =========================
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync()
     {
-        var order = await _orderRepository.GetByIdAsync(id);
-        return order == null ? null : _mapper.Map<OrderDto>(order);
+        return await _orderRepository.GetAllAsync();
     }
 
-    public async Task<IEnumerable<OrderDto>> GetAllOrdersAsync()
+    // =========================
+    // Get order by id
+    // =========================
+    public async Task<Order?> GetOrderByIdAsync(int id)
     {
-        var orders = await _orderRepository.GetAllAsync();
-        return _mapper.Map<IEnumerable<OrderDto>>(orders);
+        return await _orderRepository.GetByIdAsync(id);
     }
 
-    public async Task<IEnumerable<OrderDto>> GetOrdersByCustomerAsync(int customerId)
+    // =========================
+    // Create order
+    // =========================
+    public async Task<Order> CreateOrderAsync(Order order)
     {
-        var orders = await _orderRepository.GetByCustomerAsync(customerId);
-        return _mapper.Map<IEnumerable<OrderDto>>(orders);
+        order.created_at = DateTime.UtcNow;
+        order.updated_at = DateTime.UtcNow;
+
+        // default status
+        if (string.IsNullOrEmpty(order.order_status))
+            order.order_status = "pending";
+
+        return await _orderRepository.CreateAsync(order);
     }
 
-    public async Task<IEnumerable<OrderDto>> GetOrdersByStatusAsync(string status)
+    // =========================
+    // Update order
+    // =========================
+    public async Task<bool> UpdateOrderAsync(Order order)
     {
-        var orders = await _orderRepository.GetByStatusAsync(status);
-        return _mapper.Map<IEnumerable<OrderDto>>(orders);
+        var existing = await _orderRepository.GetByIdAsync(order.order_id);
+        if (existing == null) return false;
+
+        order.updated_at = DateTime.UtcNow;
+
+        return await _orderRepository.UpdateAsync(order);
     }
 
-    public async Task<OrderDto> CreateOrderAsync(CreateOrderDto createOrderDto)
-    {
-        var order = new Order
-        {
-            CustomerId = createOrderDto.CustomerId,
-            ShippingAddress = createOrderDto.ShippingAddress,
-            Notes = createOrderDto.Notes,
-            Status = "Pending",
-            TotalAmount = createOrderDto.Items.Sum(i => i.Quantity * i.UnitPrice),
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        await _orderRepository.AddAsync(order);
-        await _orderRepository.SaveChangesAsync();
-
-        return _mapper.Map<OrderDto>(order);
-    }
-
-    public async Task<OrderDto> UpdateOrderAsync(int id, UpdateOrderDto updateOrderDto)
-    {
-        var order = await _orderRepository.GetByIdAsync(id);
-        if (order == null)
-            throw new InvalidOperationException($"Order with id {id} not found");
-
-        order.Status = updateOrderDto.Status;
-        order.ShippingAddress = updateOrderDto.ShippingAddress;
-        order.Notes = updateOrderDto.Notes;
-        order.UpdatedAt = DateTime.UtcNow;
-
-        await _orderRepository.UpdateAsync(order);
-        await _orderRepository.SaveChangesAsync();
-
-        return _mapper.Map<OrderDto>(order);
-    }
-
-    public async Task<bool> CancelOrderAsync(int id)
-    {
-        var order = await _orderRepository.GetByIdAsync(id);
-        if (order == null)
-            return false;
-
-        if (order.Status == "Cancelled" || order.Status == "Delivered")
-            return false;
-
-        order.Status = "Cancelled";
-        order.UpdatedAt = DateTime.UtcNow;
-
-        await _orderRepository.UpdateAsync(order);
-        await _orderRepository.SaveChangesAsync();
-        return true;
-    }
-
+    // =========================
+    // Delete order
+    // =========================
     public async Task<bool> DeleteOrderAsync(int id)
     {
-        var order = await _orderRepository.GetByIdAsync(id);
-        if (order == null)
-            return false;
+        var existing = await _orderRepository.GetByIdAsync(id);
+        if (existing == null) return false;
 
-        var result = await _orderRepository.DeleteAsync(id);
-        if (result)
-            await _orderRepository.SaveChangesAsync();
-        return result;
+        return await _orderRepository.DeleteAsync(id);
     }
 
-    public async Task<OrderDto> UpdateOrderStatusAsync(int id, string status)
+    // =========================
+    // Orders by user
+    // =========================
+    public async Task<IEnumerable<Order>> GetOrdersByUserAsync(int userId)
     {
-        var result = await _orderRepository.UpdateOrderStatusAsync(id, status);
-        if (!result)
-            throw new InvalidOperationException($"Failed to update order status for id {id}");
-
-        var order = await _orderRepository.GetByIdAsync(id);
-        if (order == null)
-            throw new InvalidOperationException($"Order with id {id} not found");
-
-        return _mapper.Map<OrderDto>(order);
+        return await _orderRepository.GetByUserIdAsync(userId);
     }
 
-    public async Task<IEnumerable<OrderDto>> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate)
+    // =========================
+    // Order details (basic version)
+    // =========================
+    public async Task<object?> GetOrderDetailsAsync(int orderId)
     {
-        var orders = await _orderRepository.GetByDateRangeAsync(startDate, endDate);
-        return _mapper.Map<IEnumerable<OrderDto>>(orders);
-    }
+        var order = await _orderRepository.GetByIdAsync(orderId);
+        if (order == null) return null;
 
-    public async Task<decimal> GetTotalRevenueAsync()
-    {
-        return await _orderRepository.GetTotalRevenueAsync();
-    }
+        var items = await _orderRepository.GetOrderItemsAsync(orderId);
+        var payment = await _orderRepository.GetPaymentAsync(orderId);
+        var shipping = await _orderRepository.GetShippingAsync(orderId);
 
-    public async Task<int> GetTotalOrdersCountAsync()
-    {
-        return await _orderRepository.GetTotalOrderCountAsync();
+        return new
+        {
+            order,
+            items,
+            payment,
+            shipping
+        };
     }
 }

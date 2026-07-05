@@ -2,16 +2,16 @@ namespace gift_shop.Models;
 
 public class Product
 {
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public decimal Price { get; set; }
-    public decimal Cost { get; set; }
-    public int CategoryId { get; set; }
-    public int SupplierId { get; set; }
-    public string Sku { get; set; } = string.Empty;
-    public string ImageUrl { get; set; } = string.Empty;
-    public bool IsActive { get; set; } = true;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public int product_id { get; set; }
+    public string product_name { get; set; } = string.Empty;
+    public string description { get; set; } = string.Empty;
+    public decimal price { get; set; }
+    public decimal cost_price { get; set; }
+    public int category_id { get; set; }
+    public int supplier_id { get; set; }
+    public string sku { get; set; } = string.Empty;
+    //public string ImageUrl { get; set; } = string.Empty;
+    public string status { get; set; } = string.Empty;
+    public DateTime created_at { get; set; } = DateTime.UtcNow;
+    public DateTime updated_at { get; set; } = DateTime.UtcNow;
 }

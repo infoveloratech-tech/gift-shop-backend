@@ -1,6 +1,7 @@
 using gift_shop.Data;
 using gift_shop.DTOs;
 using gift_shop.Models;
+using gift_shop.Repositories.Interfaces;
 using gift_shop.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,118 +9,49 @@ namespace gift_shop.Services.Implementations;
 
 public class SupplierService : ISupplierService
 {
-    private readonly GiftShopDbContext _context;
+    private readonly ISupplierRepository _supplierRepository;
 
-    public SupplierService(GiftShopDbContext context)
+    public SupplierService(ISupplierRepository supplierRepository)
     {
-        _context = context;
+        _supplierRepository = supplierRepository;
     }
 
-    public async Task<SupplierDto?> GetSupplierByIdAsync(int id)
+    public async Task<IEnumerable<Supplier>> GetAllSuppliersAsync()
     {
-        var supplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
-        return supplier == null ? null : MapToDto(supplier);
+        return await _supplierRepository.GetAllAsync();
     }
 
-    public async Task<IEnumerable<SupplierDto>> GetAllSuppliersAsync()
+    public async Task<Supplier?> GetSupplierByIdAsync(int id)
     {
-        var suppliers = await _context.Suppliers.ToListAsync();
-        return suppliers.Select(MapToDto).ToList();
+        return await _supplierRepository.GetByIdAsync(id);
     }
 
-    public async Task<IEnumerable<SupplierDto>> GetActiveSuppliersAsync()
+    public async Task<Supplier> CreateSupplierAsync(Supplier supplier)
     {
-        var suppliers = await _context.Suppliers.Where(s => s.IsActive).ToListAsync();
-        return suppliers.Select(MapToDto).ToList();
+        supplier.created_at = DateTime.UtcNow;
+        supplier.updated_at = DateTime.UtcNow;
+
+        if (string.IsNullOrEmpty(supplier.status))
+            supplier.status = "active";
+
+        return await _supplierRepository.CreateAsync(supplier);
     }
 
-    public async Task<SupplierDto> CreateSupplierAsync(CreateSupplierDto createSupplierDto)
+    public async Task<bool> UpdateSupplierAsync(Supplier supplier)
     {
-        var supplier = new Supplier
-        {
-            Name = createSupplierDto.Name,
-            ContactEmail = createSupplierDto.ContactEmail,
-            ContactPhone = createSupplierDto.ContactPhone,
-            Address = createSupplierDto.Address,
-            City = createSupplierDto.City,
-            State = createSupplierDto.State,
-            PostalCode = createSupplierDto.PostalCode,
-            Country = createSupplierDto.Country,
-            IsActive = true
-        };
+        var existing = await _supplierRepository.GetByIdAsync(supplier.supplier_id);
+        if (existing == null) return false;
 
-        _context.Suppliers.Add(supplier);
-        await _context.SaveChangesAsync();
+        supplier.updated_at = DateTime.UtcNow;
 
-        return MapToDto(supplier);
-    }
-
-    public async Task<SupplierDto> UpdateSupplierAsync(int id, UpdateSupplierDto updateSupplierDto)
-    {
-        var supplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
-        if (supplier == null) throw new ArgumentException("Supplier not found");
-
-        supplier.Name = updateSupplierDto.Name;
-        supplier.ContactEmail = updateSupplierDto.ContactEmail;
-        supplier.ContactPhone = updateSupplierDto.ContactPhone;
-        supplier.Address = updateSupplierDto.Address;
-        supplier.City = updateSupplierDto.City;
-        supplier.State = updateSupplierDto.State;
-        supplier.PostalCode = updateSupplierDto.PostalCode;
-        supplier.Country = updateSupplierDto.Country;
-        supplier.IsActive = updateSupplierDto.IsActive;
-        supplier.UpdatedAt = DateTime.UtcNow;
-
-        _context.Suppliers.Update(supplier);
-        await _context.SaveChangesAsync();
-
-        return MapToDto(supplier);
+        return await _supplierRepository.UpdateAsync(supplier);
     }
 
     public async Task<bool> DeleteSupplierAsync(int id)
     {
-        var supplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
-        if (supplier == null) return false;
+        var existing = await _supplierRepository.GetByIdAsync(id);
+        if (existing == null) return false;
 
-        _context.Suppliers.Remove(supplier);
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> DeactivateSupplierAsync(int id)
-    {
-        var supplier = await _context.Suppliers.FirstOrDefaultAsync(s => s.Id == id);
-        if (supplier == null) return false;
-
-        supplier.IsActive = false;
-        supplier.UpdatedAt = DateTime.UtcNow;
-
-        _context.Suppliers.Update(supplier);
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<IEnumerable<SupplierDto>> GetSuppliersByCityAsync(string city)
-    {
-        var suppliers = await _context.Suppliers.Where(s => s.City == city).ToListAsync();
-        return suppliers.Select(MapToDto).ToList();
-    }
-
-    private SupplierDto MapToDto(Supplier supplier)
-    {
-        return new SupplierDto
-        {
-            Id = supplier.Id,
-            Name = supplier.Name,
-            ContactEmail = supplier.ContactEmail,
-            ContactPhone = supplier.ContactPhone,
-            Address = supplier.Address,
-            City = supplier.City,
-            State = supplier.State,
-            PostalCode = supplier.PostalCode,
-            Country = supplier.Country,
-            IsActive = supplier.IsActive,
-            CreatedAt = supplier.CreatedAt
-        };
+        return await _supplierRepository.DeleteAsync(id);
     }
 }

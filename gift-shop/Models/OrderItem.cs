@@ -2,11 +2,11 @@ namespace gift_shop.Models;
 
 public class OrderItem
 {
-    public int Id { get; set; }
-    public int OrderId { get; set; }
-    public int ProductId { get; set; }
-    public int Quantity { get; set; }
-    public decimal UnitPrice { get; set; }
-    public decimal TotalPrice { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public int order_item_id { get; set; }
+    public int order_id { get; set; }
+    public int product_id { get; set; }
+    public int quantity { get; set; }
+    public decimal price { get; set; }
+    public decimal total { get; set; }
+    public DateTime created_at { get; set; } = DateTime.UtcNow;
 }

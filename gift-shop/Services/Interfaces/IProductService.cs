@@ -1,19 +1,16 @@
 using gift_shop.DTOs;
+using gift_shop.Models;
 
 namespace gift_shop.Services.Interfaces;
 
 public interface IProductService
 {
-    Task<ProductDto?> GetProductByIdAsync(int id);
-    Task<ProductDto?> GetProductBySkuAsync(string sku);
-    Task<IEnumerable<ProductDto>> GetAllProductsAsync();
-    Task<IEnumerable<ProductDto>> GetActiveProductsAsync();
-    Task<IEnumerable<ProductDto>> GetProductsByCategoryAsync(int categoryId);
-    Task<IEnumerable<ProductDto>> GetProductsBySupplierAsync(int supplierId);
-    Task<ProductDto> CreateProductAsync(CreateProductDto createProductDto);
-    Task<ProductDto> UpdateProductAsync(int id, UpdateProductDto updateProductDto);
+    Task<IEnumerable<Product>> GetAllProductsAsync();
+    Task<Product?> GetProductByIdAsync(int id);
+    Task<Product> CreateProductAsync(Product product);
+    Task<bool> UpdateProductAsync(Product product);
     Task<bool> DeleteProductAsync(int id);
-    Task<bool> DeactivateProductAsync(int id);
-    Task<IEnumerable<ProductDto>> SearchProductsAsync(string searchTerm);
-    Task<IEnumerable<ProductDto>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice);
+
+    Task<IEnumerable<Product>> GetProductsByCategoryAsync(int categoryId);
+    Task<IEnumerable<Product>> SearchProductsAsync(string name);
 }

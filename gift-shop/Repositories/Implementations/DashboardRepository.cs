@@ -18,7 +18,7 @@ public class DashboardRepository
     /// </summary>
     public async Task<decimal> GetTotalRevenueAsync()
     {
-        return await _context.Orders.SumAsync(o => o.TotalAmount);
+        return await _context.Orders.SumAsync(o => o.total_amount);
     }
 
     /// <summary>
@@ -28,8 +28,8 @@ public class DashboardRepository
     {
         var currentMonth = DateTime.UtcNow.AddMonths(-1);
         return await _context.Orders
-            .Where(o => o.OrderDate >= currentMonth)
-            .SumAsync(o => o.TotalAmount);
+            .Where(o => o.order_date >= currentMonth)
+            .SumAsync(o => o.total_amount);
     }
 
     /// <summary>
@@ -39,8 +39,8 @@ public class DashboardRepository
     {
         var currentWeek = DateTime.UtcNow.AddDays(-7);
         return await _context.Orders
-            .Where(o => o.OrderDate >= currentWeek)
-            .SumAsync(o => o.TotalAmount);
+            .Where(o => o.order_date >= currentWeek)
+            .SumAsync(o => o.total_amount);
     }
 
     /// <summary>
@@ -50,8 +50,8 @@ public class DashboardRepository
     {
         var today = DateTime.UtcNow.Date;
         return await _context.Orders
-            .Where(o => o.OrderDate.Date == today)
-            .SumAsync(o => o.TotalAmount);
+            .Where(o => o.order_date.Date == today)
+            .SumAsync(o => o.total_amount);
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class DashboardRepository
     public async Task<int> GetLowStockItemsAsync()
     {
         return await _context.Inventories
-            .Where(i => i.QuantityOnHand <= i.ReorderLevel)
+            .Where(i => i.quantity <= i.reorder_level)
             .CountAsync();
     }
 
@@ -106,12 +106,12 @@ public class DashboardRepository
     public async Task<List<dynamic>> GetTopProductsByRevenueAsync(int count = 5)
     {
         var topProducts = await _context.OrderItems
-            .GroupBy(oi => oi.ProductId)
+            .GroupBy(oi => oi.product_id)
             .Select(g => new
             {
                 ProductId = g.Key,
-                TotalSold = g.Sum(oi => oi.Quantity),
-                Revenue = g.Sum(oi => oi.TotalPrice)
+                TotalSold = g.Sum(oi => oi.quantity),
+                Revenue = g.Sum(oi => oi.total)
             })
             .OrderByDescending(x => x.Revenue)
             .Take(count)
@@ -126,15 +126,15 @@ public class DashboardRepository
     public async Task<List<dynamic>> GetRecentOrdersAsync(int count = 10)
     {
         var orders = await _context.Orders
-            .OrderByDescending(o => o.OrderDate)
+            .OrderByDescending(o => o.order_date)
             .Take(count)
             .Select(o => new
             {
-                o.Id,
-                o.CustomerId,
-                o.OrderDate,
-                o.TotalAmount,
-                o.Status
+                o.order_id,
+                o.user_id,
+                o.order_date,
+                o.total_amount,
+                o.order_status
             })
             .ToListAsync();
 
@@ -149,12 +149,12 @@ public class DashboardRepository
         var startDate = DateTime.UtcNow.AddDays(-days);
 
         var salesTrend = await _context.Orders
-            .Where(o => o.OrderDate >= startDate)
-            .GroupBy(o => o.OrderDate.Date)
+            .Where(o => o.order_date >= startDate)
+            .GroupBy(o => o.order_date.Date)
             .Select(g => new
             {
                 Date = g.Key,
-                Amount = g.Sum(o => o.TotalAmount)
+                Amount = g.Sum(o => o.total_amount)
             })
             .OrderBy(s => s.Date)
             .ToListAsync();
@@ -168,7 +168,7 @@ public class DashboardRepository
     public async Task<List<dynamic>> GetOrderCountByStatusAsync()
     {
         var ordersByStatus = await _context.Orders
-            .GroupBy(o => o.Status)
+            .GroupBy(o => o.order_status)
             .Select(g => new
             {
                 Status = g.Key,
@@ -205,10 +205,10 @@ public class DashboardRepository
     {
         var totalItems = await _context.Inventories.CountAsync();
         var lowStockItems = await _context.Inventories
-            .Where(i => i.QuantityOnHand <= i.ReorderLevel)
+            .Where(i => i.quantity <= i.reorder_level)
             .CountAsync();
         var totalStockValue = await _context.Inventories
-            .Join(_context.Products, i => i.ProductId, p => p.Id, (i, p) => i.QuantityOnHand * p.Price)
+            .Join(_context.Products, i => i.product_id, p => p.product_id, (i, p) => i.quantity * p.price)
             .SumAsync();
 
         return new

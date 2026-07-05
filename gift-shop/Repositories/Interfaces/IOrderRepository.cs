@@ -2,16 +2,17 @@ using gift_shop.Models;
 
 namespace gift_shop.Repositories.Interfaces;
 
-public interface IOrderRepository : IRepository<Order>
+public interface IOrderRepository
 {
-    Task<IEnumerable<Order>> GetByCustomerAsync(int customerId);
-    Task<IEnumerable<Order>> GetByStatusAsync(string status);
-    Task<IEnumerable<Order>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);
-    Task<decimal> GetTotalRevenueAsync();
-    Task<decimal> GetRevenueByDateRangeAsync(DateTime startDate, DateTime endDate);
-    Task<int> GetTotalOrderCountAsync();
-    Task<int> GetOrderCountByStatusAsync(string status);
-    Task<IEnumerable<Order>> GetRecentOrdersAsync(int count);
-    Task<Order?> GetOrderWithItemsAsync(int orderId);
-    Task<bool> UpdateOrderStatusAsync(int orderId, string status);
+    Task<IEnumerable<Order>> GetAllAsync();
+    Task<Order?> GetByIdAsync(int id);
+    Task<Order> CreateAsync(Order order);
+    Task<bool> UpdateAsync(Order order);
+    Task<bool> DeleteAsync(int id);
+
+    Task<IEnumerable<Order>> GetByUserIdAsync(int userId);
+
+    Task<IEnumerable<OrderItem>> GetOrderItemsAsync(int orderId);
+    Task<object?> GetPaymentAsync(int orderId);
+    Task<object?> GetShippingAsync(int orderId);
 }

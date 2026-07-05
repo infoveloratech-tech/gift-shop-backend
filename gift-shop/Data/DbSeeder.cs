@@ -95,27 +95,26 @@ public class DbSeeder
             {
                 new Supplier
                 {
-                    Name = "TechSupply Co.",
-                    ContactEmail = "contact@techsupply.com",
-                    ContactPhone = "+1-800-123-4567",
-                    Address = "123 Tech Street",
-                    City = "San Francisco",
-                    State = "CA",
-                    PostalCode = "94102",
-                    Country = "USA",
-                    IsActive = true
+                    supplier_name = "TechSupply Co.",
+                    email = "contact@techsupply.com",
+                    phone = "+1-800-123-4567",
+                    address = "123 Tech Street",
+                    city = "San Francisco",
+                    status = "CA",
+                    postal_code = "94102",
+                    country = "USA",
+                    state = "active"
                 },
                 new Supplier
-                {
-                    Name = "HomeGoods International",
-                    ContactEmail = "info@homegoods.com",
-                    ContactPhone = "+1-800-987-6543",
-                    Address = "456 Home Ave",
-                    City = "New York",
-                    State = "NY",
-                    PostalCode = "10001",
-                    Country = "USA",
-                    IsActive = true
+                { supplier_name = "TechSupply Co.",
+                    email = "contact@techsupply.com",
+                    phone = "+1-800-123-4567",
+                    address = "123 Tech Street",
+                    city = "San Francisco",
+                    status = "CA",
+                    postal_code = "94102",
+                    country = "USA",
+                    state = "active"
                 }
             };
 

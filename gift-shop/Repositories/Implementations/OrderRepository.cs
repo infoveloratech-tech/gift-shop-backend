@@ -5,97 +5,104 @@ using Microsoft.EntityFrameworkCore;
 
 namespace gift_shop.Repositories.Implementations;
 
-public class OrderRepository : Repository<Order>, IOrderRepository
+public class OrderRepository : IOrderRepository
 {
-    public OrderRepository(GiftShopDbContext context) : base(context)
+    private readonly GiftShopDbContext _context;
+
+    public OrderRepository(GiftShopDbContext context)
     {
+        _context = context;
     }
 
-    public async Task<IEnumerable<Order>> GetByCustomerAsync(int customerId)
+    // =========================
+    // Get all orders
+    // =========================
+    public async Task<IEnumerable<Order>> GetAllAsync()
     {
-        return await _dbSet.Where(o => o.CustomerId == customerId)
-                           .OrderByDescending(o => o.OrderDate)
-                           .ToListAsync();
+        return await _context.Orders
+            .OrderByDescending(o => o.order_id)
+            .ToListAsync();
     }
 
-    public async Task<IEnumerable<Order>> GetByStatusAsync(string status)
+    // =========================
+    // Get order by id
+    // =========================
+    public async Task<Order?> GetByIdAsync(int id)
     {
-        return await _dbSet.Where(o => o.Status == status)
-                           .OrderByDescending(o => o.OrderDate)
-                           .ToListAsync();
+        return await _context.Orders
+            .FirstOrDefaultAsync(o => o.order_id == id);
     }
 
-    public async Task<IEnumerable<Order>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
+    // =========================
+    // Create order
+    // =========================
+    public async Task<Order> CreateAsync(Order order)
     {
-        return await _dbSet.Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
-                           .OrderByDescending(o => o.OrderDate)
-                           .ToListAsync();
+        _context.Orders.Add(order);
+        await _context.SaveChangesAsync();
+        return order;
     }
 
-    public async Task<decimal> GetTotalRevenueAsync()
+    // =========================
+    // Update order
+    // =========================
+    public async Task<bool> UpdateAsync(Order order)
     {
-        return await _dbSet.SumAsync(o => o.TotalAmount);
+        _context.Orders.Update(order);
+        return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<decimal> GetRevenueByDateRangeAsync(DateTime startDate, DateTime endDate)
+    // =========================
+    // Delete order
+    // =========================
+    public async Task<bool> DeleteAsync(int id)
     {
-        return await _dbSet.Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
-                           .SumAsync(o => o.TotalAmount);
+        var order = await _context.Orders
+            .FirstOrDefaultAsync(o => o.order_id == id);
+
+        if (order == null)
+            return false;
+
+        _context.Orders.Remove(order);
+        return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<int> GetTotalOrderCountAsync()
+    // =========================
+    // Get orders by user
+    // =========================
+    public async Task<IEnumerable<Order>> GetByUserIdAsync(int userId)
     {
-        return await _dbSet.CountAsync();
+        return await _context.Orders
+            .Where(o => o.user_id == userId)
+            .OrderByDescending(o => o.order_id)
+            .ToListAsync();
     }
 
-    public async Task<int> GetOrderCountByStatusAsync(string status)
+    // =========================
+    // Get order items
+    // =========================
+    public async Task<IEnumerable<OrderItem>> GetOrderItemsAsync(int orderId)
     {
-        return await _dbSet.Where(o => o.Status == status).CountAsync();
+        return await _context.OrderItems
+            .Where(oi => oi.order_id == orderId)
+            .ToListAsync();
     }
 
-    public async Task<IEnumerable<Order>> GetRecentOrdersAsync(int count)
+    // =========================
+    // Get payment (latest or single)
+    // =========================
+    public async Task<object?> GetPaymentAsync(int orderId)
     {
-        return await _dbSet.OrderByDescending(o => o.OrderDate)
-                           .Take(count)
-                           .ToListAsync();
+        return await _context.Payments
+            .FirstOrDefaultAsync(p => p.OrderId == orderId);
     }
 
-    public async Task<Order?> GetOrderWithItemsAsync(int orderId)
+    // =========================
+    // Get shipping
+    // =========================
+    public async Task<object?> GetShippingAsync(int orderId)
     {
-        return await _dbSet.FirstOrDefaultAsync(o => o.Id == orderId);
-    }
-
-    public async Task<bool> UpdateOrderStatusAsync(int orderId, string status)
-    {
-        var order = await GetByIdAsync(orderId);
-        if (order == null) return false;
-
-        order.Status = status;
-        order.UpdatedAt = DateTime.UtcNow;
-
-        await UpdateAsync(order);
-        await SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<decimal> GetAverageOrderValueAsync()
-    {
-        var count = await GetTotalOrderCountAsync();
-        if (count == 0) return 0;
-
-        var total = await GetTotalRevenueAsync();
-        return total / count;
-    }
-
-    public async Task<int> GetOrderCountByCustomerAsync(int customerId)
-    {
-        return await _dbSet.Where(o => o.CustomerId == customerId).CountAsync();
-    }
-
-    public async Task<IEnumerable<Order>> GetPendingOrdersAsync()
-    {
-        return await _dbSet.Where(o => o.Status == "Pending")
-                           .OrderByDescending(o => o.OrderDate)
-                           .ToListAsync();
+        return await _context.Shipping
+            .FirstOrDefaultAsync(s => s.order_id == orderId);
     }
 }

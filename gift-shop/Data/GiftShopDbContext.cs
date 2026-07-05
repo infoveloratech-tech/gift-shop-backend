@@ -19,6 +19,8 @@ public class GiftShopDbContext : DbContext
     public DbSet<OrderItem> OrderItems { get; set; } = null!;
     public DbSet<Payment> Payments { get; set; } = null!;
     public DbSet<Inventory> Inventories { get; set; } = null!;
+    public DbSet<Coupon> Coupons { get; set; } = null!;
+    public DbSet<Shipping> Shipping { get; set; } = null!;
     public DbSet<StockTransaction> StockTransactions { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -35,22 +37,23 @@ public class GiftShopDbContext : DbContext
         // Configure Role entity
         modelBuilder.Entity<Role>()
             .HasKey(r => r.Id);
-
+        modelBuilder.Entity<Coupon>().HasKey(c => c.coupon_id);
         // Configure Category entity
         modelBuilder.Entity<Category>()
             .HasKey(c => c.category_name);
 
         // Configure Supplier entity
         modelBuilder.Entity<Supplier>()
-            .HasKey(s => s.Id);
+            .HasKey(s => s.supplier_id);
 
         // Configure Product entity
         modelBuilder.Entity<Product>()
-            .HasKey(p => p.Id);
+            .HasKey(p => p.product_id);
         modelBuilder.Entity<Product>()
-            .HasIndex(p => p.Sku)
+            .HasIndex(p => p.sku)
             .IsUnique();
-
+        modelBuilder.Entity<OrderItem>().ToTable("order_items");
+        modelBuilder.Entity<Inventory>().ToTable("inventory");
         // Configure Customer entity
         modelBuilder.Entity<Customer>()
             .HasKey(c => c.Id);
@@ -60,11 +63,11 @@ public class GiftShopDbContext : DbContext
 
         // Configure Order entity
         modelBuilder.Entity<Order>()
-            .HasKey(o => o.Id);
+            .HasKey(o => o.order_id);
 
         // Configure OrderItem entity
         modelBuilder.Entity<OrderItem>()
-            .HasKey(oi => oi.Id);
+            .HasKey(oi => oi.order_item_id);
 
         // Configure Payment entity
         modelBuilder.Entity<Payment>()
@@ -72,7 +75,7 @@ public class GiftShopDbContext : DbContext
 
         // Configure Inventory entity
         modelBuilder.Entity<Inventory>()
-            .HasKey(i => i.Id);
+            .HasKey(i => i.inventory_id);
 
         // Configure StockTransaction entity
         modelBuilder.Entity<StockTransaction>()

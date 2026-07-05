@@ -2,12 +2,11 @@ using gift_shop.Models;
 
 namespace gift_shop.Repositories.Interfaces;
 
-public interface IUserRepository : IRepository<User>
+public interface IUserRepository
 {
-    Task<User?> GetByEmailAsync(string email);
-    Task<IEnumerable<User>> GetActiveUsersAsync();
-    Task<IEnumerable<User>> GetUsersByRoleAsync(int roleId);
-    Task<bool> UserEmailExistsAsync(string email);
-    Task<bool> VerifyPasswordAsync(int userId, string password);
-    Task<bool> UpdatePasswordAsync(int userId, string passwordHash);
+    Task<IEnumerable<User>> GetAllAsync();
+    Task<User?> GetByIdAsync(int id);
+    Task<User> CreateAsync(User user);
+    Task<bool> UpdateAsync(User user);
+    Task<bool> DeleteAsync(int id);
 }

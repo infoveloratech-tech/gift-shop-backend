@@ -5,50 +5,44 @@ using Microsoft.EntityFrameworkCore;
 
 namespace gift_shop.Repositories.Implementations;
 
-public class UserRepository : Repository<User>, IUserRepository
+public class UserRepository : IUserRepository
 {
-    public UserRepository(GiftShopDbContext context) : base(context)
+    private readonly GiftShopDbContext _context;
+
+    public UserRepository(GiftShopDbContext context)
     {
+        _context = context;
     }
 
-    public async Task<User?> GetByEmailAsync(string email)
+    public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
+        return await _context.Users.ToListAsync();
     }
 
-    public async Task<IEnumerable<User>> GetActiveUsersAsync()
+    public async Task<User?> GetByIdAsync(int id)
     {
-        return await _dbSet.Where(u => u.Status == "Active").ToListAsync();
+        return await _context.Users.FirstOrDefaultAsync(x => x.UserId == id);
     }
 
-    public async Task<IEnumerable<User>> GetUsersByRoleAsync(int roleId)
+    public async Task<User> CreateAsync(User user)
     {
-        return await _dbSet.Where(u => u.RoleId == roleId).ToListAsync();
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        return user;
     }
 
-    public async Task<bool> UserEmailExistsAsync(string email)
+    public async Task<bool> UpdateAsync(User user)
     {
-        return await _dbSet.AnyAsync(u => u.Email == email);
+        _context.Users.Update(user);
+        return await _context.SaveChangesAsync() > 0;
     }
 
-    public async Task<bool> VerifyPasswordAsync(int userId, string password)
+    public async Task<bool> DeleteAsync(int id)
     {
-        var user = await GetByIdAsync(userId);
+        var user = await _context.Users.FirstOrDefaultAsync(x => x.UserId == id);
         if (user == null) return false;
 
-        return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-    }
-
-    public async Task<bool> UpdatePasswordAsync(int userId, string passwordHash)
-    {
-        var user = await GetByIdAsync(userId);
-        if (user == null) return false;
-
-        user.PasswordHash = passwordHash;
-        user.UpdatedAt = DateTime.UtcNow;
-
-        await UpdateAsync(user);
-        await SaveChangesAsync();
-        return true;
+        _context.Users.Remove(user);
+        return await _context.SaveChangesAsync() > 0;
     }
 }

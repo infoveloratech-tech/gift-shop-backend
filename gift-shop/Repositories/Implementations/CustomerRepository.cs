@@ -64,13 +64,13 @@ public class CustomerRepository : Repository<Customer>, IRepository<Customer>
 
     public async Task<int> GetOrderCountByCustomerAsync(int customerId)
     {
-        return await _context.Orders.Where(o => o.CustomerId == customerId).CountAsync();
+        return await _context.Orders.Where(o => o.user_id== customerId).CountAsync();
     }
 
     public async Task<decimal> GetTotalSpentByCustomerAsync(int customerId)
     {
         return await _context.Orders
-            .Where(o => o.CustomerId == customerId)
-            .SumAsync(o => o.TotalAmount);
+            .Where(o => o.user_id == customerId)
+            .SumAsync(o => o.total_amount);
     }
 }

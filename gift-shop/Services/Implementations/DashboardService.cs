@@ -66,12 +66,12 @@ public class DashboardService : IDashboardService
     public async Task<List<TopProductDto>> GetTopProductsAsync(int topCount = 5)
     {
         var topProducts = await _context.OrderItems
-            .GroupBy(oi => oi.ProductId)
+            .GroupBy(oi => oi.product_id)
             .Select(g => new
             {
                 ProductId = g.Key,
-                TotalSold = g.Sum(oi => oi.Quantity),
-                Revenue = g.Sum(oi => oi.TotalPrice)
+                TotalSold = g.Sum(oi => oi.quantity),
+                Revenue = g.Sum(oi => oi.total)
             })
             .OrderByDescending(x => x.Revenue)
             .Take(topCount)
@@ -80,13 +80,13 @@ public class DashboardService : IDashboardService
         var result = new List<TopProductDto>();
         foreach (var item in topProducts)
         {
-            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == item.ProductId);
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.product_id == item.ProductId);
             if (product != null)
             {
                 result.Add(new TopProductDto
                 {
-                    Id = product.Id,
-                    Name = product.Name,
+                    Id = product.product_id,
+                    Name = product.product_name,
                     TotalSold = item.TotalSold,
                     Revenue = item.Revenue
                 });
@@ -99,21 +99,21 @@ public class DashboardService : IDashboardService
     public async Task<List<RecentOrderDto>> GetRecentOrdersAsync(int orderCount = 10)
     {
         var orders = await _context.Orders
-            .OrderByDescending(o => o.OrderDate)
+            .OrderByDescending(o => o.order_date)
             .Take(orderCount)
             .ToListAsync();
 
         var result = new List<RecentOrderDto>();
         foreach (var order in orders)
         {
-            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == order.CustomerId);
+            var customer = await _context.Customers.FirstOrDefaultAsync(c => c.Id == order.user_id);
             result.Add(new RecentOrderDto
             {
-                Id = order.Id,
+                Id = order.order_id,
                 CustomerName = customer != null ? $"{customer.FirstName} {customer.LastName}" : "Unknown",
-                TotalAmount = order.TotalAmount,
-                Status = order.Status,
-                OrderDate = order.OrderDate
+                TotalAmount = order.total_amount,
+                Status = order.order_status,
+                OrderDate = order.order_date
             });
         }
 
@@ -124,30 +124,30 @@ public class DashboardService : IDashboardService
     {
         var currentMonth = DateTime.UtcNow.AddMonths(-1);
         return await _context.Orders
-            .Where(o => o.OrderDate >= currentMonth)
-            .SumAsync(o => o.TotalAmount);
+            .Where(o => o.order_date >= currentMonth)
+            .SumAsync(o => o.total_amount);
     }
 
     public async Task<decimal> GetWeeklySalesAsync()
     {
         var currentWeek = DateTime.UtcNow.AddDays(-7);
         return await _context.Orders
-            .Where(o => o.OrderDate >= currentWeek)
-            .SumAsync(o => o.TotalAmount);
+            .Where(o => o.order_date >= currentWeek)
+            .SumAsync(o => o.total_amount);
     }
 
     public async Task<decimal> GetDailySalesAsync()
     {
         var today = DateTime.UtcNow.Date;
         return await _context.Orders
-            .Where(o => o.OrderDate.Date == today)
-            .SumAsync(o => o.TotalAmount);
+            .Where(o => o.order_date.Date == today)
+            .SumAsync(o => o.total_amount);
     }
 
     public async Task<int> GetLowStockItemsCountAsync()
     {
         return await _context.Inventories
-            .Where(i => i.QuantityOnHand <= i.ReorderLevel)
+            .Where(i => i.quantity <= i.reorder_level)
             .CountAsync();
     }
 
@@ -156,12 +156,12 @@ public class DashboardService : IDashboardService
         var startDate = DateTime.UtcNow.AddDays(-days);
 
         var salesData = await _context.Orders
-            .Where(o => o.OrderDate >= startDate)
-            .GroupBy(o => o.OrderDate.Date)
+            .Where(o => o.order_date >= startDate)
+            .GroupBy(o => o.order_date.Date)
             .Select(g => new SalesTrendDto
             {
                 Date = g.Key.ToString("yyyy-MM-dd"),
-                Amount = g.Sum(o => o.TotalAmount)
+                Amount = g.Sum(o => o.total_amount)
             })
             .OrderBy(s => s.Date)
             .ToListAsync();
@@ -171,7 +171,7 @@ public class DashboardService : IDashboardService
 
     private async Task<decimal> GetTotalRevenueAsync()
     {
-        return await _context.Orders.SumAsync(o => o.TotalAmount);
+        return await _context.Orders.SumAsync(o => o.total_amount);
     }
 
     private async Task<int> GetTotalOrdersCountAsync()
